@@ -1,10 +1,10 @@
 import React from 'react';
-import LoginForm from './components/LoginForm'
 import Container from '@material-ui/core/Container'
-import { styles } from './App.styles'
 import { withStyles } from '@material-ui/styles'
 import { Router, Link } from "@reach/router"
-import PhoneVerification from './components/PhoneVerification'
+import { styles } from 'styles/App.styles'
+import Home from '@dreemhome/components/Home'
+import RegistrationForm from '@dreemhome/components/registration/RegistrationForm'
 
 type Props = Partial<{classes: any}>
 

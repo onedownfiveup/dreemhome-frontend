@@ -1,7 +1,7 @@
 import React from 'react'
 import {render, fireEvent, cleanup, getByTestId} from 'react-testing-library'
 import 'jest-dom/extend-expect'
-import App from 'App'
+import App from '@dreemhome/App'
 
 afterEach(cleanup)
 
