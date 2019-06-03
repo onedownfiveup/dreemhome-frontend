@@ -1,9 +1,9 @@
 import React from 'react'
-import {render, fireEvent, cleanup, getByTestId, act} from 'react-testing-library'
-import 'jest-dom/extend-expect'
-import PhoneVerification from '@dreemhome/components/registration/PhoneVerification'
+import {render, fireEvent, cleanup} from 'react-testing-library'
+import RegistrationForm from '@dreemhome/components/registration/RegistrationForm'
+import ApiClient from '@dreemhome/util/ApiClient'
 import axios, { AxiosPromise } from 'axios'
-import ApiClient from '@dreemhome/util/apiClient'
+import 'jest-dom/extend-expect'
 
 const axiosMock = axios as jest.Mocked<typeof axios>;
 const callBack = jest.fn()
@@ -31,20 +31,14 @@ axiosMock.get.mockImplementation(() =>
     }
   }) as AxiosPromise
 )
+test('form initial state is the phone verification form', () => {
+  const {getByTestId} = render(<RegistrationForm />)
 
-test('sends a request to the server to verify the phone number', async () => {
-  const { getByText, getByLabelText } = render(<PhoneVerification handleUserChanged={callBack} />)
-  const input = getByLabelText('Phone number')
-
-  fireEvent.change(input, { target: { value: number } })
-  fireEvent.click(getByText('Next'))
-
-  await expect(axiosMock.get).toHaveBeenCalledWith(`${apiClient.baseUrl}/phone_numbers/verify?phone_number=${number}`)
-  await expect(getByText("Confirmation Time")).toBeDefined()
+  expect(getByTestId('phone-verification')).toBeDefined
 })
 
-test('user verifies their phone number', async () => {
-  const {getByText, getByLabelText} = render(<PhoneVerification handleUserChanged={callBack}/>)
+test('renders the code confirmation screen when user clicks next', async () => {
+  const { getByTestId, getByText, getByLabelText } = render(<RegistrationForm />)
   const phoneNumberInput = getByLabelText('Phone number')
   const code = '1234'
 

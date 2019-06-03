@@ -14,12 +14,11 @@ class App extends React.Component<Props, object> {
 
     return (
       <Container maxWidth="sm" className={classes.root}>
-        <header data-testid='home-header' className="App-header">
-          <h1>Welcome to Dreemhom</h1>
-          <h2>Many newlyweds want to start their lives together in the home of their dreams.</h2>
-        </header>
-
-        <PhoneVerification />
+        <Router>
+          <Home path="/" />
+          <RegistrationForm path="/registration" />
+        </Router>
+        {this.props.children}
       </Container>
     );
   }
