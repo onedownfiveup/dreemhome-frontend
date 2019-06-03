@@ -1,5 +1,4 @@
 import axios, { AxiosResponse } from 'axios'
-import { basename } from 'path'
 import { PhoneNumber } from 'entities/PhoneNumber'
 
 class ApiClient {

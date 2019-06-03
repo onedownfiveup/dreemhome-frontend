@@ -1,4 +1,4 @@
-import React, { FormEvent } from 'react'
+import React from 'react'
 import PhoneVerification from '@dreemhome/components/registration/PhoneVerification'
 import { User } from '@dreemhome/entities/User'
 import { RouteComponentProps } from '@reach/router';

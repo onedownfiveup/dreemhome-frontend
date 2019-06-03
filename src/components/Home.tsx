@@ -2,7 +2,7 @@ import React from 'react';
 import { styles } from '@dreemhome/styles/Home.styles'
 import { withStyles } from '@material-ui/styles'
 import Button from '@material-ui/core/Button'
-import { Router, Link } from "@reach/router"
+import { Link } from "@reach/router"
 import { RouteComponentProps } from '@reach/router';
 
 interface Props extends RouteComponentProps{

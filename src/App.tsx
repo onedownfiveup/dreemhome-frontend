@@ -1,7 +1,7 @@
 import React from 'react';
 import Container from '@material-ui/core/Container'
 import { withStyles } from '@material-ui/styles'
-import { Router, Link } from "@reach/router"
+import { Router } from "@reach/router"
 import { styles } from 'styles/App.styles'
 import Home from '@dreemhome/components/Home'
 import RegistrationForm from '@dreemhome/components/registration/RegistrationForm'

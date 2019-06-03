@@ -118,7 +118,6 @@ const VerifyCodeForm: FunctionComponent<VerifyCodeFormProps> = ({
 
 const PhoneVerification: FunctionComponent<Props> = ({classes, handleUserChanged, children}) => {
   const [sentVerification, setSentVerification] = useState(false)
-  const [verificationCode, setVerificationCode] = useState('')
   const [user, setUser] = useState<User>({
     firstName: '',
     lastName: '',
@@ -131,7 +130,7 @@ const PhoneVerification: FunctionComponent<Props> = ({classes, handleUserChanged
 
   const handleSubmitPhoneNumber = (number: string) => {
     handleUserChanged(user)
-    const response = apiClient.verifyPhoneNumber(number, (phoneNumber) => {
+    apiClient.verifyPhoneNumber(number, (phoneNumber) => {
       const newUser = Object.assign(user, {phoneNumber: phoneNumber})
       setUser(newUser)
       setSentVerification(true)
@@ -141,7 +140,7 @@ const PhoneVerification: FunctionComponent<Props> = ({classes, handleUserChanged
   const handleSubmitVerificationCode = (code: string, phoneNumberId?: string) => {
     if (phoneNumberId) {
       handleUserChanged(user)
-      const response = apiClient.verifyPhoneCode(phoneNumberId, code, (phoneNumber) => {
+      apiClient.verifyPhoneCode(phoneNumberId, code, (phoneNumber) => {
         const newUser = Object.assign(user, { phoneNumber: phoneNumber })
         setUser(newUser)
       }).catch(error => { })
