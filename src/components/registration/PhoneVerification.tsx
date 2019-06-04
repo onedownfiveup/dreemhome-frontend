@@ -1,6 +1,7 @@
 import React, {
   useState,
-  FunctionComponent
+  FunctionComponent,
+  useEffect
 } from 'react'
 import Button from '@material-ui/core/Button'
 import Grid from '@material-ui/core/Grid'
@@ -9,6 +10,7 @@ import { styles } from './PhoneVerification.styles'
 import { withStyles } from '@material-ui/styles'
 import ApiClient from '@dreemhome/util/apiClient'
 import { User } from '@dreemhome/entities/User'
+import Notification from '@dreemhome/components/shared/Notification'
 
 interface Props {
   classes: any
@@ -23,6 +25,7 @@ interface GetPhoneVerificationFormProps {
 interface VerifyCodeFormProps {
   classes: any
   handleSubmit: (code: string, phoneNumberId?: string) => void
+  handleError:   (errorMessage: string) => void
   user: User
 }
 
@@ -41,10 +44,7 @@ const GetPhoneVerificationForm: FunctionComponent<GetPhoneVerificationFormProps>
   return (
     <div>
       <h1>Are You Real?</h1>
-      <p>
-        Please enter your mobile number or contact email and well send you a confirmation code to make
-sure you are not a creepy bot:
-        </p>
+      <p>Please enter your mobile number or contact email and well send you a confirmation code to make sure you are not a creepy bot:</p>
       <form data-testid="phone-verification" className={classes.container} noValidate autoComplete="off">
         <Grid container spacing={3}>
           <Grid item xs={12}>
@@ -117,7 +117,6 @@ const VerifyCodeForm: FunctionComponent<VerifyCodeFormProps> = ({
 }
 
 const PhoneVerification: FunctionComponent<Props> = ({classes, handleUserChanged, children}) => {
-  const [sentVerification, setSentVerification] = useState(false)
   const [user, setUser] = useState<User>({
     firstName: '',
     lastName: '',
@@ -127,35 +126,70 @@ const PhoneVerification: FunctionComponent<Props> = ({classes, handleUserChanged
       verified: false
     }
   })
+  const [sentVerification, setSentVerification] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string>('')
+  const [hasError, setHasError] = useState<boolean>(false)
+  const [number, setNumber] = useState<string>('')
+  const [verificationCode, setVerificationCode] = useState('')
 
   const handleSubmitPhoneNumber = (number: string) => {
     handleUserChanged(user)
-    apiClient.verifyPhoneNumber(number, (phoneNumber) => {
-      const newUser = Object.assign(user, {phoneNumber: phoneNumber})
-      setUser(newUser)
-      setSentVerification(true)
-    }).catch(error => {})
+    setNumber(number)
   }
 
   const handleSubmitVerificationCode = (code: string, phoneNumberId?: string) => {
-    if (phoneNumberId) {
-      handleUserChanged(user)
-      apiClient.verifyPhoneCode(phoneNumberId, code, (phoneNumber) => {
-        const newUser = Object.assign(user, { phoneNumber: phoneNumber })
-        setUser(newUser)
-      }).catch(error => { })
-    }
+    setVerificationCode(code)
+    handleUserChanged(user)
   }
 
-  if (!sentVerification) {
-    return(
-      <GetPhoneVerificationForm classes={classes} handleSubmit={handleSubmitPhoneNumber} />
-    )
-  } else {
-    return(
-      <VerifyCodeForm classes={classes} handleSubmit={handleSubmitVerificationCode} user={user} />
-    )
+  useEffect(() => {
+    if (number.length > 0) {
+      apiClient.verifyPhoneNumber(number, (phoneNumber) => {
+        const newUser = Object.assign(user, { phoneNumber: phoneNumber })
+        setUser(newUser)
+        setSentVerification(true)
+      }).catch(error => {
+        handleError("Code verification failed, please try again")
+      })
+    }
+  }, [number])
+
+  useEffect(() => {
+    if (user.phoneNumber.id) {
+      apiClient.verifyPhoneCode(user.phoneNumber.id, verificationCode, (phoneNumber) => {
+        const newUser = Object.assign(user, { phoneNumber: phoneNumber })
+        setUser(newUser)
+      }).catch(error => {
+        console.log("Eureka")
+        handleError("Code verification failed, please try again")
+      })
+    }
+  }, [verificationCode])
+
+  useEffect(() => {
+    if (errorMessage.length > 0) {
+      setHasError(true)
+    }
+  }, [errorMessage])
+
+  const handleError = (errorMessage: string) => {
+    setErrorMessage(errorMessage)
   }
+
+  console.log(`rendering with haserror = ${hasError}`)
+  return (
+    <div>
+      {hasError &&
+        <Notification open={true}>{errorMessage}</Notification>
+      }
+
+      {!sentVerification ? (
+        <GetPhoneVerificationForm classes={classes} handleSubmit={handleSubmitPhoneNumber} />
+      ) : (
+        <VerifyCodeForm classes={classes} handleSubmit={handleSubmitVerificationCode} user={user} handleError={handleError}/>
+      )}
+    </div>
+  )
 }
 
 export default withStyles(styles)(PhoneVerification)
