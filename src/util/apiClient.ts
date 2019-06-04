@@ -9,26 +9,17 @@ class ApiClient {
     axios.defaults.withCredentials = true
   }
 
-  verifyPhoneNumber(phoneNumber: string, callBack: (phoneNumber: PhoneNumber) => void) {
+  verifyPhoneNumber(phoneNumber: string) {
     return axios
       .get(`${this.baseUrl}/phone_numbers/verify?phone_number=${phoneNumber}`)
-      .then((response: AxiosResponse) => {
-        const phoneNumber = response.data['data']['attributes'] as PhoneNumber
-        phoneNumber.id = response.data['data']['id']
-        callBack(phoneNumber)
-      })
   }
 
-  verifyPhoneCode(phoneNumberId: string, code: string, callBack: (phoneNumber: PhoneNumber) => void) {
+  verifyPhoneCode(phoneNumberId: string, code: string) {
     return axios
       .post(
         `${this.baseUrl}/phone_numbers/verify/${phoneNumberId}`,
         { code: code }
-      ).then((response: AxiosResponse) => {
-        const phoneNumber = response.data['data']['attributes'] as PhoneNumber
-        phoneNumber.id = response.data['data']['id']
-        callBack(phoneNumber)
-      })
+      )
   }
 }
 

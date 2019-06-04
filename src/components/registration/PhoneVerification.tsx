@@ -1,7 +1,8 @@
 import React, {
   useState,
   FunctionComponent,
-  useEffect
+  useEffect,
+  useLayoutEffect
 } from 'react'
 import Button from '@material-ui/core/Button'
 import Grid from '@material-ui/core/Grid'
@@ -10,7 +11,9 @@ import { styles } from './PhoneVerification.styles'
 import { withStyles } from '@material-ui/styles'
 import ApiClient from '@dreemhome/util/apiClient'
 import { User } from '@dreemhome/entities/User'
+import { PhoneNumber } from '@dreemhome/entities/PhoneNumber'
 import Notification from '@dreemhome/components/shared/Notification'
+import axios from 'axios'
 
 interface Props {
   classes: any
@@ -25,7 +28,6 @@ interface GetPhoneVerificationFormProps {
 interface VerifyCodeFormProps {
   classes: any
   handleSubmit: (code: string, phoneNumberId?: string) => void
-  handleError:   (errorMessage: string) => void
   user: User
 }
 
@@ -142,41 +144,43 @@ const PhoneVerification: FunctionComponent<Props> = ({classes, handleUserChanged
     handleUserChanged(user)
   }
 
-  useEffect(() => {
-    if (number.length > 0) {
-      apiClient.verifyPhoneNumber(number, (phoneNumber) => {
-        const newUser = Object.assign(user, { phoneNumber: phoneNumber })
-        setUser(newUser)
-        setSentVerification(true)
-      }).catch(error => {
-        handleError("Code verification failed, please try again")
-      })
+  useLayoutEffect(() => {
+    const verifyPhoneNumber = async () => {
+      if (number.length > 0) {
+        const result = await apiClient.verifyPhoneNumber(number).catch((error) => {
+          setHasError(true)
+          setErrorMessage("Phone verification failed, please try again")
+        })
+
+        if (result) {
+          const phoneNumber = result.data['data']['attributes'] as PhoneNumber
+          phoneNumber.id = result.data['data']['id']
+
+          const newUser = Object.assign(user, { phoneNumber: phoneNumber })
+          setUser(newUser)
+          setSentVerification(true)
+        }
+      }
     }
+    verifyPhoneNumber()
   }, [number])
 
   useEffect(() => {
-    if (user.phoneNumber.id) {
-      apiClient.verifyPhoneCode(user.phoneNumber.id, verificationCode, (phoneNumber) => {
-        const newUser = Object.assign(user, { phoneNumber: phoneNumber })
-        setUser(newUser)
-      }).catch(error => {
-        console.log("Eureka")
-        handleError("Code verification failed, please try again")
-      })
+    const verifyPhoneCode = async () => {
+      if (user.phoneNumber.id) {
+        const result = await apiClient.verifyPhoneCode(
+          user.phoneNumber.id,
+          verificationCode
+        ).catch((error) => {
+          setHasError(true)
+          setErrorMessage('Code verification failed, please try again')
+        })
+      }
     }
+    verifyPhoneCode()
+
   }, [verificationCode])
 
-  useEffect(() => {
-    if (errorMessage.length > 0) {
-      setHasError(true)
-    }
-  }, [errorMessage])
-
-  const handleError = (errorMessage: string) => {
-    setErrorMessage(errorMessage)
-  }
-
-  console.log(`rendering with haserror = ${hasError}`)
   return (
     <div>
       {hasError &&
@@ -186,7 +190,7 @@ const PhoneVerification: FunctionComponent<Props> = ({classes, handleUserChanged
       {!sentVerification ? (
         <GetPhoneVerificationForm classes={classes} handleSubmit={handleSubmitPhoneNumber} />
       ) : (
-        <VerifyCodeForm classes={classes} handleSubmit={handleSubmitVerificationCode} user={user} handleError={handleError}/>
+        <VerifyCodeForm classes={classes} handleSubmit={handleSubmitVerificationCode} user={user} />
       )}
     </div>
   )

@@ -27,24 +27,12 @@ describe("verifyPhoneNumber", () => {
     }) as AxiosPromise
   )
 
-  test('verify phone number makes appropriate API call', (done) => {
-    apiClient.verifyPhoneNumber(number, (phoneNumber: PhoneNumber) => {
-      expect(axiosMock.get).toHaveBeenCalledTimes(1);
-      expect(axiosMock.get).toHaveBeenCalledWith(
-        `${apiClient.baseUrl}/phone_numbers/verify?phone_number=${number}`
-      )
-    })
-      .then(done)
-      .catch(done.fail);
-  })
-
-  test('verify phone number invokes callback with phonenumber', (done) => {
-    apiClient.verifyPhoneNumber(number, (phoneNumber: PhoneNumber) => {
-      expect(phoneNumber.number).toBe(number)
-      expect(phoneNumber.id).toBe("cc167653-2f2e-44c9-9723-ea166f24ea56")
-    })
-      .then(done)
-      .catch(done.fail);
+  test('verify phone number makes appropriate API call', async () => {
+    apiClient.verifyPhoneNumber(number)
+    expect(axiosMock.get).toHaveBeenCalledTimes(1);
+    expect(axiosMock.get).toHaveBeenCalledWith(
+      `${apiClient.baseUrl}/phone_numbers/verify?phone_number=${number}`
+    )
   })
 })
 
@@ -69,25 +57,12 @@ describe("ApiClient.verifyPhoneCode", () => {
   const code = '1234'
   const phoneNumberId = '1111-2222'
 
-  test('verify phone code makes appropriate API call', (done) => {
-    apiClient.verifyPhoneCode(phoneNumberId, code, (phoneNumber: PhoneNumber) => {
-      expect(axiosMock.post).toHaveBeenCalledTimes(1);
-      expect(axiosMock.post).toHaveBeenCalledWith(
-        `${apiClient.baseUrl}/phone_numbers/verify/${phoneNumberId}`,
-        { code: code }
-      )
-    })
-      .then(done)
-      .catch(done.fail);
-  })
-
-
-  test('verify phone number invokes callback with phonenumber', (done) => {
-    apiClient.verifyPhoneCode(phoneNumberId, code, (phoneNumber: PhoneNumber) => {
-      expect(phoneNumber.number).toBe(number)
-      expect(phoneNumber.id).toBe("cc167653-2f2e-44c9-9723-ea166f24ea56")
-    })
-      .then(done)
-      .catch(done.fail);
+  test('verify phone code makes appropriate API call', () => {
+    apiClient.verifyPhoneCode(phoneNumberId, code)
+    expect(axiosMock.post).toHaveBeenCalledTimes(1);
+    expect(axiosMock.post).toHaveBeenCalledWith(
+      `${apiClient.baseUrl}/phone_numbers/verify/${phoneNumberId}`,
+      { code: code }
+    )
   })
 })

@@ -1,7 +1,9 @@
 import React, { useState, FunctionComponent } from 'react'
 import IconButton from '@material-ui/core/IconButton'
 import Snackbar from '@material-ui/core/Snackbar'
+import SnackbarContent from '@material-ui/core/SnackbarContent'
 import CloseIcon from '@material-ui/icons/Close'
+import clsx from 'clsx'
 import { notificationStyles } from '@dreemhome/components/shared/Notification.styles'
 
 interface NotificationProps {
@@ -25,10 +27,6 @@ const Notification: FunctionComponent<NotificationProps> = ({ open, children }) 
         key={`${vertical},${horizontal}`}
         open={isOpen}
         onClose={handleClose}
-        ContentProps={{
-          'aria-describedby': 'message-id',
-        }}
-        message={<span id="message-id">{children}</span>}
         action={[
           <IconButton
             key="close"
@@ -41,7 +39,22 @@ const Notification: FunctionComponent<NotificationProps> = ({ open, children }) 
             <CloseIcon />
           </IconButton>
         ]}
-      />
+      >
+        <SnackbarContent
+          className={classes['error']}
+          aria-describedby="client-snackbar"
+          message={
+            <span id="client-snackbar" className={classes.message}>
+              {children}
+            </span>
+          }
+          action={[
+            <IconButton key="close" aria-label="Close" color="inherit" onClick={handleClose}>
+              <CloseIcon className={classes.icon} />
+            </IconButton>,
+          ]}
+        />
+      </Snackbar>
     </div>
   );
 }

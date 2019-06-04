@@ -24,6 +24,7 @@
     "babel-preset-react-app": "^9.0.0",
     "camelcase": "^5.2.0",
     "case-sensitive-paths-webpack-plugin": "2.2.0",
+    "clsx": "^1.0.4",
     "css-loader": "2.1.1",
     "dotenv": "6.2.0",
     "dotenv-expand": "4.2.0",
@@ -74,6 +75,7 @@
     "start": "node scripts/start.js",
     "build": "node scripts/build.js",
     "test": "node scripts/test.js",
+    "test:debug": "node --inspect-brk scripts/test.js --runInBand --no-cache",
     "deploy": "aws s3 sync build/ s3://dreemhome-site"
   },
   "eslintConfig": {

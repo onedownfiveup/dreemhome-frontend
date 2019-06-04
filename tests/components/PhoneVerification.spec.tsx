@@ -3,7 +3,9 @@ import {
   render,
   fireEvent,
   cleanup,
-  within
+  waitForElement,
+  within,
+  act
 } from 'react-testing-library'
 import 'jest-dom/extend-expect'
 import PhoneVerification from '@dreemhome/components/registration/PhoneVerification'
@@ -42,14 +44,16 @@ axiosMock.get.mockImplementation(() =>
 )
 
 test('sends a request to the server to verify the phone number', async () => {
-  const { getByText, getByLabelText } = render(<PhoneVerification handleUserChanged={callBack} />)
+  const { getByText, getByLabelText, rerender } = render(<PhoneVerification handleUserChanged={callBack} />)
   const input = getByLabelText('Phone number')
 
   fireEvent.change(input, { target: { value: number } })
-  fireEvent.click(getByText('Next'))
+  await fireEvent.click(getByText('Next'))
 
   await expect(axiosMock.get).toHaveBeenCalledWith(`${apiClient.baseUrl}/phone_numbers/verify?phone_number=${number}`)
-  await expect(getByText("Confirmation Time")).toBeDefined()
+
+  const confirmationElement = await waitForElement(() => getByText("Confirmation Time"));
+  expect(confirmationElement).toBeDefined()
 })
 
 test('user verifies their phone number', async () => {
@@ -60,7 +64,8 @@ test('user verifies their phone number', async () => {
   fireEvent.change(phoneNumberInput, { target: { value: number } })
   await fireEvent.click(getByText('Next'))
 
-  expect(getByText("Confirmation Time")).toBeDefined()
+  const confirmationElement = await waitForElement(() => getByText("Confirmation Time"));
+  expect(confirmationElement).toBeDefined()
 
   const codeInput = getByLabelText('Verification code')
 
@@ -94,12 +99,36 @@ test('user sees error if code confirmation fails', async () => {
   await fireEvent.change(phoneNumberInput, { target: { value: number } })
   await fireEvent.click(getByText('Next'))
 
-  expect(getByText("Confirmation Time")).toBeDefined()
+  const confirmationElement = await waitForElement(() => getByText("Confirmation Time"));
+  expect(confirmationElement).toBeDefined()
 
   const codeInput = getByLabelText('Verification code')
 
-  await fireEvent.change(codeInput, { target: { value: code } })
+  fireEvent.change(codeInput, { target: { value: code } })
   await fireEvent.click(getByText('Next'))
 
-  expect(getByText("Code verification failed, please try again")).toBeDefined
+  expect(getByText("Code verification failed, please try again")).toBeDefined()
+})
+
+test('user sees error if phone verification fails', async () => {
+  axiosMock.get.mockImplementation(() =>
+    Promise.reject({
+      status: 400,
+      data: {
+        "errors": [{
+          "detail": "Voodoo doodoo",
+          "id": "cc167653-2f2e-44c9-9723-ea166f24ea56",
+          "status": "bad_request"
+        }],
+      }
+    }) as AxiosPromise
+  )
+
+  const { getByText, getByLabelText, getByTestId } = render(<PhoneVerification handleUserChanged={callBack} />)
+  const phoneNumberInput = getByLabelText('Phone number')
+
+  await fireEvent.change(phoneNumberInput, { target: { value: number } })
+  await fireEvent.click(getByText('Next'))
+
+  expect(getByText("Phone verification failed, please try again")).toBeDefined()
 })
