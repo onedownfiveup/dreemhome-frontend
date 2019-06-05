@@ -3,9 +3,7 @@ import {
   render,
   fireEvent,
   cleanup,
-  waitForElement,
-  within,
-  act
+  waitForElement
 } from 'react-testing-library'
 import 'jest-dom/extend-expect'
 import PhoneVerification from '@dreemhome/components/registration/PhoneVerification'
@@ -15,33 +13,34 @@ import ApiClient from '@dreemhome/util/apiClient'
 const axiosMock = axios as jest.Mocked<typeof axios>;
 const callBack = jest.fn()
 const apiClient = new ApiClient()
-
-afterEach(() => {
-  cleanup
-  axiosMock.get.mockReset
-  axiosMock.post.mockReset
-})
-
 const number = '222-232-2232'
 const phoneNumberId = "cc167653-2f2e-44c9-9723-ea166f24ea56"
 
-axiosMock.get.mockImplementation(() =>
-  Promise.resolve({
-    "data": {
+afterEach(() => {
+  cleanup
+  axiosMock.get.mockReset()
+  axiosMock.post.mockReset()
+})
+
+beforeEach(() => {
+  axiosMock.get.mockImplementation(() =>
+    Promise.resolve({
       "data": {
-        "id": "cc167653-2f2e-44c9-9723-ea166f24ea56",
-        "type": "phone_number",
-        "attributes": {
-          "created_at": "2019-06-02 15:46:38 +0000",
-          "number": number,
-          "twilio_sid": "1234",
-          "status": "unverified",
-          "updated_at": "2019-06-02 15:46:38 +0000"
+        "data": {
+          "id": "cc167653-2f2e-44c9-9723-ea166f24ea56",
+          "type": "phone_number",
+          "attributes": {
+            "created_at": "2019-06-02 15:46:38 +0000",
+            "number": number,
+            "twilio_sid": "1234",
+            "status": "unverified",
+            "updated_at": "2019-06-02 15:46:38 +0000"
+          }
         }
       }
-    }
-  }) as AxiosPromise
-)
+    }) as AxiosPromise
+  )
+})
 
 test('sends a request to the server to verify the phone number', async () => {
   const { getByText, getByLabelText, rerender } = render(<PhoneVerification handleUserChanged={callBack} />)
@@ -78,57 +77,126 @@ test('user verifies their phone number', async () => {
   )
 })
 
-test('user sees error if code confirmation fails', async () => {
-  axiosMock.post.mockImplementation(() =>
-    Promise.reject({
-      status: 400,
-      data: {
-        "errors": [{
-          "detail": "Voodoo doodoo",
-          "id": "cc167653-2f2e-44c9-9723-ea166f24ea56",
-          "status": "bad_request"
-        }],
-      }
-    }) as AxiosPromise
-  )
+describe('error messaging', () => {
+  test('user sees error if phone verification fails', async () => {
+    axiosMock.get.mockImplementation(() =>
+      Promise.reject({
+        status: 400,
+        data: {
+          "errors": [{
+            "detail": "Voodoo doodoo",
+            "id": "cc167653-2f2e-44c9-9723-ea166f24ea56",
+            "status": "bad_request"
+          }],
+        }
+      }) as AxiosPromise
+    )
 
-  const { getByText, getByLabelText, getByTestId } = render(<PhoneVerification handleUserChanged={callBack} />)
-  const phoneNumberInput = getByLabelText('Phone number')
-  const code = '1234'
+    const { getByText, getByLabelText, getByTestId } = render(<PhoneVerification handleUserChanged={callBack} />)
+    const phoneNumberInput = getByLabelText('Phone number')
 
-  await fireEvent.change(phoneNumberInput, { target: { value: number } })
-  await fireEvent.click(getByText('Next'))
+    await fireEvent.change(phoneNumberInput, { target: { value: number } })
+    await fireEvent.click(getByText('Next'))
 
-  const confirmationElement = await waitForElement(() => getByText("Confirmation Time"));
-  expect(confirmationElement).toBeDefined()
+    expect(getByText("Phone verification failed, please try again")).toBeDefined()
+  })
 
-  const codeInput = getByLabelText('Verification code')
+  test('user can re enter phone number after verification fails.', async () => {
+    axiosMock.get.mockImplementationOnce(() =>
+      Promise.reject({
+        status: 400,
+        data: {
+          "errors": [{
+            "detail": "Voodoo doodoo",
+            "id": "cc167653-2f2e-44c9-9723-ea166f24ea56",
+            "status": "bad_request"
+          }],
+        }
+      }) as AxiosPromise
+    )
 
-  fireEvent.change(codeInput, { target: { value: code } })
-  await fireEvent.click(getByText('Next'))
+    const { getByText, getByLabelText, getByTestId } = render(<PhoneVerification handleUserChanged={callBack} />)
+    const phoneNumberInput = getByLabelText('Phone number')
 
-  expect(getByText("Code verification failed, please try again")).toBeDefined()
-})
+    await fireEvent.change(phoneNumberInput, { target: { value: number } })
+    await fireEvent.click(getByText('Next'))
 
-test('user sees error if phone verification fails', async () => {
-  axiosMock.get.mockImplementation(() =>
-    Promise.reject({
-      status: 400,
-      data: {
-        "errors": [{
-          "detail": "Voodoo doodoo",
-          "id": "cc167653-2f2e-44c9-9723-ea166f24ea56",
-          "status": "bad_request"
-        }],
-      }
-    }) as AxiosPromise
-  )
+    expect(getByText("Phone verification failed, please try again")).toBeDefined()
 
-  const { getByText, getByLabelText, getByTestId } = render(<PhoneVerification handleUserChanged={callBack} />)
-  const phoneNumberInput = getByLabelText('Phone number')
+    await fireEvent.click(getByTestId('notification-close-button'))
+    await fireEvent.change(phoneNumberInput, { target: { value: number } })
+    await fireEvent.click(getByText('Next'))
 
-  await fireEvent.change(phoneNumberInput, { target: { value: number } })
-  await fireEvent.click(getByText('Next'))
+    await waitForElement(() => getByText("Confirmation Time"));
+  })
 
-  expect(getByText("Phone verification failed, please try again")).toBeDefined()
+  test('user sees error if code confirmation fails', async () => {
+    axiosMock.post.mockImplementation(() =>
+      Promise.reject({
+        status: 400,
+        data: {
+          "errors": [{
+            "detail": "Voodoo doodoo",
+            "id": "cc167653-2f2e-44c9-9723-ea166f24ea56",
+            "status": "bad_request"
+          }],
+        }
+      }) as AxiosPromise
+    )
+
+    const { getByText, getByLabelText, getByTestId } = render(<PhoneVerification handleUserChanged={callBack} />)
+    const phoneNumberInput = getByLabelText('Phone number')
+    const code = '1234'
+
+    await fireEvent.change(phoneNumberInput, { target: { value: number } })
+    await fireEvent.click(getByText('Next'))
+
+    const confirmationElement = await waitForElement(() => getByText("Confirmation Time"));
+    expect(confirmationElement).toBeDefined()
+
+    const codeInput = getByLabelText('Verification code')
+
+    fireEvent.change(codeInput, { target: { value: code } })
+    await fireEvent.click(getByText('Next'))
+
+    expect(getByText("Code verification failed, please try again")).toBeDefined()
+  })
+
+  test('user can re verification code after dismissing error notitification', async () => {
+    axiosMock.post.mockImplementation(() =>
+      Promise.reject({
+        status: 400,
+        data: {
+          "errors": [{
+            "detail": "Voodoo doodoo",
+            "id": "cc167653-2f2e-44c9-9723-ea166f24ea56",
+            "status": "bad_request"
+          }],
+        }
+      }) as AxiosPromise
+    )
+
+    const { getByText, getByLabelText, getByTestId } = render(<PhoneVerification handleUserChanged={callBack} />)
+    const phoneNumberInput = getByLabelText('Phone number')
+    const code = '1234'
+
+    await fireEvent.change(phoneNumberInput, { target: { value: number } })
+    await fireEvent.click(getByText('Next'))
+
+    const confirmationElement = await waitForElement(() => getByText("Confirmation Time"));
+    expect(confirmationElement).toBeDefined()
+
+    const codeInput = getByLabelText('Verification code')
+
+    fireEvent.change(codeInput, { target: { value: code } })
+    await fireEvent.click(getByText('Next'))
+
+    expect(getByText("Code verification failed, please try again")).toBeDefined()
+
+    await fireEvent.click(getByTestId('notification-close-button'))
+    await fireEvent.change(phoneNumberInput, { target: { value: number } })
+    await fireEvent.click(getByText('Next'))
+
+    await expect(axiosMock.post).toHaveBeenCalledTimes(2)
+  })
 })

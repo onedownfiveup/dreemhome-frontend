@@ -3,21 +3,22 @@ import IconButton from '@material-ui/core/IconButton'
 import Snackbar from '@material-ui/core/Snackbar'
 import SnackbarContent from '@material-ui/core/SnackbarContent'
 import CloseIcon from '@material-ui/icons/Close'
-import clsx from 'clsx'
 import { notificationStyles } from '@dreemhome/components/shared/Notification.styles'
 
 interface NotificationProps {
   open: boolean
   children: any
+  handleCloseCallback: () => void
 }
 
-const Notification: FunctionComponent<NotificationProps> = ({ open, children }) => {
+const Notification: FunctionComponent<NotificationProps> = ({ open, children, handleCloseCallback }) => {
   const [isOpen, setIsOpen] = useState(open);
   const [vertical, horizontal] = ['top', 'center']
   const classes = notificationStyles()
 
   const handleClose = () => {
     setIsOpen(false);
+    handleCloseCallback()
   }
 
   return (
@@ -49,7 +50,7 @@ const Notification: FunctionComponent<NotificationProps> = ({ open, children }) 
             </span>
           }
           action={[
-            <IconButton key="close" aria-label="Close" color="inherit" onClick={handleClose}>
+            <IconButton key="close" aria-label="Close" color="inherit" onClick={handleClose} data-testid="notification-close-button">
               <CloseIcon className={classes.icon} />
             </IconButton>,
           ]}

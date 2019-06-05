@@ -46,12 +46,13 @@ const PhoneVerification: FunctionComponent<Props> = ({classes, handleUserChanged
     handleUserChanged(user)
   }
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     const verifyPhoneNumber = async () => {
       if (number.length > 0) {
         const result = await apiClient.verifyPhoneNumber(number).catch((error) => {
           setHasError(true)
           setErrorMessage("Phone verification failed, please try again")
+          setNumber('')
         })
 
         if (result) {
@@ -69,13 +70,14 @@ const PhoneVerification: FunctionComponent<Props> = ({classes, handleUserChanged
 
   useEffect(() => {
     const verifyPhoneCode = async () => {
-      if (user.phoneNumber.id) {
+      if (user.phoneNumber.id && verificationCode.length > 0) {
         const result = await apiClient.verifyPhoneCode(
           user.phoneNumber.id,
           verificationCode
         ).catch((error) => {
           setHasError(true)
           setErrorMessage('Code verification failed, please try again')
+          setVerificationCode('')
         })
       }
     }
@@ -83,10 +85,15 @@ const PhoneVerification: FunctionComponent<Props> = ({classes, handleUserChanged
 
   }, [verificationCode])
 
+  const handleClose = () => {
+    setHasError(false)
+    setErrorMessage('')
+  }
+
   return (
     <div>
       {hasError &&
-        <Notification open={true}>{errorMessage}</Notification>
+        <Notification open={true} handleCloseCallback={handleClose}>{errorMessage}</Notification>
       }
 
       {!sentVerification ? (
