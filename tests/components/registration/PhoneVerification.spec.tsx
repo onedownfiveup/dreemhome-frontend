@@ -40,6 +40,23 @@ beforeEach(() => {
       }
     }) as AxiosPromise
   )
+  axiosMock.post.mockImplementation(() =>
+    Promise.resolve({
+      "data": {
+        "data": {
+          "id": "cc167653-2f2e-44c9-9723-ea166f24ea56",
+          "type": "phone_number",
+          "attributes": {
+            "created_at": "2019-06-02 15:46:38 +0000",
+            "number": number,
+            "twilio_sid": "1234",
+            "status": "verified",
+            "updated_at": "2019-06-02 15:46:38 +0000"
+          }
+        }
+      }
+    }) as AxiosPromise
+  )
 })
 
 test('sends a request to the server to verify the phone number', async () => {
@@ -56,7 +73,7 @@ test('sends a request to the server to verify the phone number', async () => {
 })
 
 test('user verifies their phone number', async () => {
-  const { getByText, getByLabelText } = render(<PhoneVerification handleUserChanged={callBack} />)
+  const { getByText, getByLabelText, rerender } = render(<PhoneVerification  handleVerified={callBack} />)
   const phoneNumberInput = getByLabelText('Phone number')
   const code = '1234'
 
@@ -75,6 +92,19 @@ test('user verifies their phone number', async () => {
     `${apiClient.baseUrl}/phone_numbers/verify/${phoneNumberId}`,
     { code: code }
   )
+
+  await waitForElement(() => getByText("Confirmation Time"));
+  expect(callBack).toHaveBeenCalledWith({
+    id: phoneNumberId,
+    type: "phone_number",
+    attributes: {
+      number: number,
+      created_at: "2019-06-02 15:46:38 +0000",
+      status: "verified",
+      twilio_sid: "1234",
+      updated_at: "2019-06-02 15:46:38 +0000",
+    }
+  })
 })
 
 describe('error messaging', () => {
@@ -92,7 +122,7 @@ describe('error messaging', () => {
       }) as AxiosPromise
     )
 
-    const { getByText, getByLabelText, getByTestId } = render(<PhoneVerification handleUserChanged={callBack} />)
+    const { getByText, getByLabelText, getByTestId } = render(<PhoneVerification handleVerified={callBack} />)
     const phoneNumberInput = getByLabelText('Phone number')
 
     await fireEvent.change(phoneNumberInput, { target: { value: number } })
@@ -115,7 +145,7 @@ describe('error messaging', () => {
       }) as AxiosPromise
     )
 
-    const { getByText, getByLabelText, getByTestId } = render(<PhoneVerification handleUserChanged={callBack} />)
+    const { getByText, getByLabelText, getByTestId } = render(<PhoneVerification handleVerified={callBack} />)
     const phoneNumberInput = getByLabelText('Phone number')
 
     await fireEvent.change(phoneNumberInput, { target: { value: number } })
@@ -144,7 +174,7 @@ describe('error messaging', () => {
       }) as AxiosPromise
     )
 
-    const { getByText, getByLabelText, getByTestId } = render(<PhoneVerification handleUserChanged={callBack} />)
+    const { getByText, getByLabelText, getByTestId } = render(<PhoneVerification handleVerified={callBack} />)
     const phoneNumberInput = getByLabelText('Phone number')
     const code = '1234'
 
@@ -176,7 +206,7 @@ describe('error messaging', () => {
       }) as AxiosPromise
     )
 
-    const { getByText, getByLabelText, getByTestId } = render(<PhoneVerification handleUserChanged={callBack} />)
+    const { getByText, getByLabelText, getByTestId } = render(<PhoneVerification handleVerified={callBack} />)
     const phoneNumberInput = getByLabelText('Phone number')
     const code = '1234'
 

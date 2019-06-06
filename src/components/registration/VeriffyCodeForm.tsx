@@ -5,18 +5,18 @@ import React, {
 import Button from '@material-ui/core/Button'
 import Grid from '@material-ui/core/Grid'
 import TextField from '@material-ui/core/TextField'
-import { User } from '@dreemhome/entities/User'
+import { PhoneNumber } from '@dreemhome/entities/PhoneNumber';
 
 interface VerifyCodeFormProps {
   classes: any
   handleSubmit: (code: string, phoneNumberId?: string) => void
-  user: User
+  phoneNumber: PhoneNumber
 }
 
 const VerifyCodeForm: FunctionComponent<VerifyCodeFormProps> = ({
   classes,
   handleSubmit,
-  user
+  phoneNumber
 }) => {
   const [verificationCode, setVerificationCode] = useState('')
 
@@ -46,7 +46,7 @@ const VerifyCodeForm: FunctionComponent<VerifyCodeFormProps> = ({
             <Button
               color="primary"
               className={classes.button}
-              onClick={() => handleSubmit(verificationCode, user.phoneNumber.id)}
+              onClick={() => handleSubmit(verificationCode, phoneNumber.id)}
             >
               Next
             </Button>

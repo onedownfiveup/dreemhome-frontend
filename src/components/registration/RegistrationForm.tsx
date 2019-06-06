@@ -1,50 +1,47 @@
-import React from 'react'
+import React, { FunctionComponent, useState, useEffect } from 'react'
 import PhoneVerification from '@dreemhome/components/registration/PhoneVerification'
 import { User } from '@dreemhome/entities/User'
-import { RouteComponentProps } from '@reach/router';
+import { RouteComponentProps } from '@reach/router'
+import { PhoneNumber } from '@dreemhome/entities/PhoneNumber'
+import UserInfoForm from '@dreemhome/components/registration/UserInfoForm'
 
 interface Props extends RouteComponentProps{
 }
 
-interface State {
-  user: User
-  userState: "unverified" | "verified" | "created" | "payment_created"
-}
+type FormState = "unverified" | "verified" | "created" | "payment_created"
 
-class RegistrationForm extends React.Component<Props, State> {
-  constructor(props: Props) {
-    super(props)
-    this.state = {
-      userState: 'unverified',
+const RegistrationForm: FunctionComponent<Props> = () => {
+  const [formState, setFormState] = useState<FormState>('unverified')
+  const [user, setUser] = useState<User>({ attributes: { } })
+
+  const handlePhoneNumberVerified = (phoneNumber: PhoneNumber) => {
+    const newState = Object.assign(user, {
       user: {
-        firstName: '',
-        lastName: '',
-        phoneNumber: {
-          number: '',
-          verified: false
-        }
+        phone_number: phoneNumber
       }
-    }
+    })
+
+    setFormState('verified')
+    setUser(newState)
   }
 
-  handleUserChanged = (user: User) => {
-    console.log("foodyshnickens")
-  }
+  useEffect(() => {
+  }, [user, formState])
 
-  render() {
-    return (
-      <div>
-        {(() => {
-          switch (this.state.userState) {
-            case 'unverified':
-              return <PhoneVerification handleUserChanged={this.handleUserChanged} />;
-            default:
-              return null;
-          }
-        })()}
-      </div>
-    )
-  }
+  return (
+    <div>
+      {(() => {
+        switch (formState) {
+          case 'unverified':
+            return <PhoneVerification handleVerified={handlePhoneNumberVerified} />;
+          case 'verified':
+            return <UserInfoForm />
+          default:
+            return null;
+        }
+      })()}
+    </div>
+  )
 }
 
 export default RegistrationForm

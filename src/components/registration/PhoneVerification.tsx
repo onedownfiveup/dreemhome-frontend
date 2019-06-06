@@ -1,13 +1,11 @@
 import React, {
   useState,
   FunctionComponent,
-  useEffect,
-  useLayoutEffect
+  useEffect
 } from 'react'
 import { styles } from './PhoneVerification.styles'
 import { withStyles } from '@material-ui/styles'
 import ApiClient from '@dreemhome/util/apiClient'
-import { User } from '@dreemhome/entities/User'
 import { PhoneNumber } from '@dreemhome/entities/PhoneNumber'
 import Notification from '@dreemhome/components/shared/Notification'
 import GetPhoneVerificationForm from '@dreemhome/components/registration/GetPhoneVerificationForm'
@@ -15,19 +13,17 @@ import VerifyCodeForm from '@dreemhome/components/registration/VeriffyCodeForm'
 
 interface Props {
   classes: any
-  handleUserChanged: (user: User) => void
+  handleVerified: (phoneNumber: PhoneNumber) => void
 }
 
 const apiClient = new ApiClient()
 
-const PhoneVerification: FunctionComponent<Props> = ({classes, handleUserChanged, children}) => {
-  const [user, setUser] = useState<User>({
-    firstName: '',
-    lastName: '',
-    phoneNumber: {
-      id: '',
+const PhoneVerification: FunctionComponent<Props> = ({classes, handleVerified, children}) => {
+  const [phoneNumber, setPhoneNumber] = useState<PhoneNumber>({
+    id: '',
+    attributes: {
       number: '',
-      verified: false
+      status: 'unverified'
     }
   })
   const [sentVerification, setSentVerification] = useState(false)
@@ -37,13 +33,11 @@ const PhoneVerification: FunctionComponent<Props> = ({classes, handleUserChanged
   const [verificationCode, setVerificationCode] = useState('')
 
   const handleSubmitPhoneNumber = (number: string) => {
-    handleUserChanged(user)
     setNumber(number)
   }
 
   const handleSubmitVerificationCode = (code: string, phoneNumberId?: string) => {
     setVerificationCode(code)
-    handleUserChanged(user)
   }
 
   useEffect(() => {
@@ -56,11 +50,9 @@ const PhoneVerification: FunctionComponent<Props> = ({classes, handleUserChanged
         })
 
         if (result) {
-          const phoneNumber = result.data['data']['attributes'] as PhoneNumber
-          phoneNumber.id = result.data['data']['id']
-
-          const newUser = Object.assign(user, { phoneNumber: phoneNumber })
-          setUser(newUser)
+          const phoneNumber = result.data.data as PhoneNumber
+          const newPhoneNumber = Object.assign(phoneNumber)
+          setPhoneNumber(newPhoneNumber)
           setSentVerification(true)
         }
       }
@@ -70,15 +62,18 @@ const PhoneVerification: FunctionComponent<Props> = ({classes, handleUserChanged
 
   useEffect(() => {
     const verifyPhoneCode = async () => {
-      if (user.phoneNumber.id && verificationCode.length > 0) {
+      if (phoneNumber.id && verificationCode.length > 0) {
         const result = await apiClient.verifyPhoneCode(
-          user.phoneNumber.id,
+          phoneNumber.id,
           verificationCode
         ).catch((error) => {
           setHasError(true)
           setErrorMessage('Code verification failed, please try again')
           setVerificationCode('')
         })
+        if (result) {
+          handleVerified(result.data.data as PhoneNumber)
+        }
       }
     }
     verifyPhoneCode()
@@ -99,7 +94,7 @@ const PhoneVerification: FunctionComponent<Props> = ({classes, handleUserChanged
       {!sentVerification ? (
         <GetPhoneVerificationForm classes={classes} handleSubmit={handleSubmitPhoneNumber} />
       ) : (
-        <VerifyCodeForm classes={classes} handleSubmit={handleSubmitVerificationCode} user={user} />
+        <VerifyCodeForm classes={classes} handleSubmit={handleSubmitVerificationCode} phoneNumber={phoneNumber} />
       )}
     </div>
   )

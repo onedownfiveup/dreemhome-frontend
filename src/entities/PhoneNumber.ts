@@ -1,5 +1,7 @@
 export interface PhoneNumber {
-  number: string
-  verified: boolean
-  id?: string
+  id?: string,
+  attributes: {
+    number: string
+    status: string
+  }
 }
