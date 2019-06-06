@@ -3,8 +3,8 @@ import { PhoneNumber } from 'entities/PhoneNumber'
 import { User } from '@dreemhome/entities/User';
 
 class ApiClient {
-  //baseUrl = "http://dreem-LoadB-1GLWRR53AM4WG-1884613302.us-east-1.elb.amazonaws.com"
-  baseUrl = "http://localhost:8000"
+  baseUrl = "http://dreem-LoadB-1GLWRR53AM4WG-1884613302.us-east-1.elb.amazonaws.com"
+  //baseUrl = "http://localhost:8000"
 
   constructor() {
     axios.defaults.withCredentials = true
