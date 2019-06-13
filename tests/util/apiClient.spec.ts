@@ -1,8 +1,7 @@
 import axios, { AxiosPromise } from 'axios'
 import ApiClient from 'util/apiClient'
-import PhoneNumber from '@dreemhome/entities/PhoneNumber'
-import { PointerEventHandler } from 'react';
 import { User } from '@dreemhome/entities/User'
+import { PartnerInvite } from '@dreemhome/entities/PartnerInvite'
 
 const axiosMock = axios as jest.Mocked<typeof axios>;
 
@@ -84,7 +83,7 @@ describe("ApiClient.createUser", () => {
       "data": {
         "data": {
           "id": "cc167653-2f2e-44c9-9723-ea166f24ea56",
-          "type": "phone_number",
+          "type": "user",
           "attributes": {
             "created_at": "2019-06-02 15:46:38 +0000",
             "updated_at": "2019-06-02 15:46:38 +0000",
@@ -112,6 +111,54 @@ describe("ApiClient.createUser", () => {
     expect(axiosMock.post).toHaveBeenCalledWith(
       `${apiClient.baseUrl}/users`, {
         data: {...user}
+      }
+    )
+  })
+})
+
+
+describe("ApiClient.createPartnerInvite", () => {
+  const firstName = "John"
+  const lastName = "Mccain"
+  const email = "jmc@example.com"
+  const partnerInvite: PartnerInvite = {
+    attributes: {
+      first_name: firstName,
+      last_name: lastName,
+      email: email
+    }
+  }
+  const user: User = {
+    attributes: {
+      id: '1234',
+    }
+  }
+
+
+  axiosMock.post.mockImplementation(() =>
+    Promise.resolve({
+      "data": {
+        "data": {
+          "id": "cc167653-2f2e-44c9-9723-ea166f24ea56",
+          "type": "partner_invite",
+          "attributes": {
+            "created_at": "2019-06-02 15:46:38 +0000",
+            "updated_at": "2019-06-02 15:46:38 +0000",
+            "first_name": firstName,
+            "last_name": lastName,
+            "email": email,
+          }
+        }
+      }
+    }) as AxiosPromise
+  )
+
+  test('createUser code makes appropriate API call', () => {
+    apiClient.createPartnerInvite(partnerInvite, user.id)
+
+    expect(axiosMock.post).toHaveBeenCalledWith(
+      `${apiClient.baseUrl}/users/${user.id}/partner_invites`,{
+        data: {...partnerInvite}
       }
     )
   })

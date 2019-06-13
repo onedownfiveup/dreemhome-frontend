@@ -4,6 +4,7 @@ import { User } from '@dreemhome/entities/User'
 import { RouteComponentProps } from '@reach/router'
 import { PhoneNumber } from '@dreemhome/entities/PhoneNumber'
 import UserInfoForm from '@dreemhome/components/registration/UserInfoForm'
+import PartnerInfoForm from '@dreemhome/components/registration/PartnerInfoForm'
 
 interface Props extends RouteComponentProps{
 }
@@ -25,8 +26,13 @@ const RegistrationForm: FunctionComponent<Props> = () => {
     setUser(newState)
   }
 
-  useEffect(() => {
-  }, [user, formState])
+  const handleUserCreated = (user: User) => {
+    setUser(user)
+    setFormState('created')
+  }
+
+  const handlePartnerCreated = (user: User) => {
+  }
 
   return (
     <div>
@@ -35,7 +41,11 @@ const RegistrationForm: FunctionComponent<Props> = () => {
           case 'unverified':
             return <PhoneVerification handleVerified={handlePhoneNumberVerified} />;
           case 'verified':
-            return <UserInfoForm />
+            return <UserInfoForm userCreatedCallback={handleUserCreated}/>
+          case 'created':
+            if (user.id) {
+              return <PartnerInfoForm partnerCreatedCallback={handlePartnerCreated} userId={user.id} />
+            }
           default:
             return null;
         }

@@ -7,5 +7,6 @@ export interface User {
     last_name?: string
     postal_code?: string
     email?: string
+    password?: string
   }
 }
