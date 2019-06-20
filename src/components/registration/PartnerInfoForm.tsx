@@ -1,5 +1,5 @@
 import React, { FunctionComponent, useState, useEffect } from 'react'
-import { PartnerInvite } from '@dreemhome/entities/PartnerInvite'
+import { PartnerInvite, PartnerInviteAttributes } from '@dreemhome/entities/PartnerInvite'
 import { User } from '@dreemhome/entities/User'
 import Button from '@material-ui/core/Button'
 import Grid from '@material-ui/core/Grid'
@@ -15,36 +15,35 @@ interface Props {
 
 const PartnerInfoForm: FunctionComponent<Props> = ({partnerCreatedCallback, userId}) => {
   const [submitted, setSubmitted] = useState<boolean>(false)
-  const [partnerInvite, setPartnerInvite] = useState<PartnerInvite>({
-    attributes: {
-      first_name: '',
-      last_name: '',
-      email: ''
-    }
+  const [
+    partnerInviteAttributes,
+    setPartnerInviteAttributes
+  ] = useState<PartnerInviteAttributes>({
+    first_name: '',
+    last_name: '',
+    email: ''
   })
 
   const handleChange = (field: string, value: string) => {
-    const newPartnerInvite = Object.assign({}, partnerInvite, {
-      attributes: {
-        ...partnerInvite.attributes,
-        [field]: value
-      }
-    })
+    const newPartnerInviteAttributes = Object.assign(
+      {},
+      partnerInviteAttributes,
+      { [field]: value }
+    )
 
-    setPartnerInvite(newPartnerInvite)
+    setPartnerInviteAttributes(newPartnerInviteAttributes)
   }
 
   useEffect(() => {
     if (submitted) {
       const createPartnerInvite = async () => {
         const result = await apiClient.createPartnerInvite(
-          partnerInvite,
+          partnerInviteAttributes,
           userId
-          ).catch((error) => {
+        ).catch((error) => {
         })
 
         if (result) {
-          console.log("Executed")
           partnerCreatedCallback(result.data.data)
         }
       }
@@ -63,7 +62,7 @@ const PartnerInfoForm: FunctionComponent<Props> = ({partnerCreatedCallback, user
             <TextField
               id="first-name"
               label="First name"
-              value={partnerInvite.attributes.first_name}
+              value={partnerInviteAttributes.first_name}
               onChange={(event) => handleChange('first_name', event.target.value) }
               fullWidth={true}
               margin="normal"
@@ -71,7 +70,7 @@ const PartnerInfoForm: FunctionComponent<Props> = ({partnerCreatedCallback, user
             <TextField
               id="last-name"
               label="Last name"
-              value={partnerInvite.attributes.last_name}
+              value={partnerInviteAttributes.last_name}
               onChange={(event) => handleChange('last_name', event.target.value) }
               fullWidth={true}
               margin="normal"
@@ -79,7 +78,7 @@ const PartnerInfoForm: FunctionComponent<Props> = ({partnerCreatedCallback, user
             <TextField
               id="email-address"
               label="Email address"
-              value={partnerInvite.attributes.email}
+              value={partnerInviteAttributes.email}
               onChange={(event) => handleChange('email', event.target.value) }
               fullWidth={true}
               margin="normal"

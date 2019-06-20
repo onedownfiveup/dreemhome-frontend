@@ -7,11 +7,11 @@ import {
 } from 'react-testing-library'
 import 'jest-dom/extend-expect'
 import UserInfoForm from '@dreemhome/components/registration/UserInfoForm'
-import axios, { AxiosPromise } from 'axios'
+import axios from 'axios'
 import ApiClient from '@dreemhome/util/apiClient'
-import User from '@dreemhome/entities/User'
+import MockAdapter from 'axios-mock-adapter'
 
-const axiosMock = axios as jest.Mocked<typeof axios>;
+const mock = new MockAdapter(axios)
 const apiClient = new ApiClient()
 const email = 'test@example.com'
 const lastName = 'Palmer'
@@ -23,27 +23,27 @@ const password = "a password"
 
 afterEach(() => {
   cleanup()
-  axiosMock.post.mockReset()
+  mock.reset()
 })
 
 beforeEach(() => {
-  axiosMock.post.mockImplementation(() =>
-    Promise.resolve({
+  const createUserUrl = new RegExp(`${apiClient.baseUrl}/users$`)
+  mock.onPost(createUserUrl).reply(
+    200,
+    {
       "data": {
-        'data': {
-          "id": userId,
-          'type': 'users',
-          'attributes': {
-            'email': email,
-            "created_at": "2019-06-02 15:46:38 +0000",
-            "updated_at": "2019-06-02 15:46:38 +0000",
-            "postal_code": postalCode,
-            'first_name': firstName,
-            'last_name': lastName,
-          }
+        "id": userId,
+        "type": "users",
+        "attributes": {
+          "created_at": "2019-06-02 15:46:38 +0000",
+          "updated_at": "2019-06-02 15:46:38 +0000",
+          "first_name": firstName,
+          "last_name": lastName,
+          "email": email,
+          "postal_code": postalCode
         }
       }
-    }) as AxiosPromise
+    }
   )
 })
 
@@ -68,9 +68,9 @@ it('sends a request to the server to create a user', async () => {
 
   await fireEvent.click(getByText('Next'))
 
-  await expect(axiosMock.post).toHaveBeenCalledWith(
-    `${apiClient.baseUrl}/users`,
-    {
+  await expect(mock.history.post[0].url).toBe(`${apiClient.baseUrl}/users`)
+  await expect(mock.history.post[0].data).toBe(
+    JSON.stringify({
       data: {
         attributes: {
           first_name: firstName,
@@ -80,7 +80,7 @@ it('sends a request to the server to create a user', async () => {
           password: password
         }
       }
-    }
+    })
   )
 })
 

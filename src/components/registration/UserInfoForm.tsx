@@ -1,6 +1,5 @@
 import React, { FunctionComponent, useState, useEffect } from 'react'
-import { User } from '@dreemhome/entities/User'
-import { RouteComponentProps } from '@reach/router';
+import { User, UserAttributes } from '@dreemhome/entities/User'
 import Button from '@material-ui/core/Button'
 import Grid from '@material-ui/core/Grid'
 import TextField from '@material-ui/core/TextField'
@@ -14,32 +13,24 @@ interface Props {
 
 const UserInfoForm: FunctionComponent<Props> = ({userCreatedCallback}) => {
   const [submitted, setSubmitted] = useState<boolean>(false)
-  const [user, setUser] = useState<User>({
-    attributes: {
-      first_name: '',
-      last_name: '',
-      postal_code: '',
-      email: '',
-      password: ''
-    }
+  const [userAttributes, setUser] = useState<UserAttributes>({
+    first_name: '',
+    last_name: '',
+    postal_code: '',
+    email: '',
+    password: ''
   })
 
   const handleChange = (field: string, value: string) => {
-    const newUser = Object.assign({}, user, {
-      attributes: {
-        ...user.attributes,
-        [field]: value
-      }
-    })
-
+    const newUser = Object.assign({}, userAttributes, { [field]: value })
     setUser(newUser)
   }
 
   useEffect(() => {
     if (submitted) {
       const createUser = async () => {
-        const result = await apiClient.createUser(user).catch((error) => {
-          console.log("Error")
+        const result = await apiClient.createUser(userAttributes).catch((error: Error) => {
+          console.log(`Error is ${error.message}`)
         })
         if (result) {
           userCreatedCallback(result.data.data)
@@ -60,7 +51,7 @@ const UserInfoForm: FunctionComponent<Props> = ({userCreatedCallback}) => {
             <TextField
               id="first-name"
               label="First name"
-              value={user.attributes.first_name}
+              value={userAttributes.first_name}
               onChange={(event) => handleChange('first_name', event.target.value) }
               fullWidth={true}
               margin="normal"
@@ -68,7 +59,7 @@ const UserInfoForm: FunctionComponent<Props> = ({userCreatedCallback}) => {
             <TextField
               id="last-name"
               label="Last name"
-              value={user.attributes.last_name}
+              value={userAttributes.last_name}
               onChange={(event) => handleChange('last_name', event.target.value) }
               fullWidth={true}
               margin="normal"
@@ -76,7 +67,7 @@ const UserInfoForm: FunctionComponent<Props> = ({userCreatedCallback}) => {
             <TextField
               id="postal-code"
               label="Postal code"
-              value={user.attributes.postal_code}
+              value={userAttributes.postal_code}
               onChange={(event) => handleChange('postal_code', event.target.value) }
               fullWidth={true}
               margin="normal"
@@ -84,7 +75,7 @@ const UserInfoForm: FunctionComponent<Props> = ({userCreatedCallback}) => {
             <TextField
               id="email-address"
               label="Email address"
-              value={user.attributes.email}
+              value={userAttributes.email}
               onChange={(event) => handleChange('email', event.target.value) }
               fullWidth={true}
               margin="normal"
@@ -92,7 +83,7 @@ const UserInfoForm: FunctionComponent<Props> = ({userCreatedCallback}) => {
             <TextField
               id="password"
               label="Password"
-              value={user.attributes.password}
+              value={userAttributes.password}
               onChange={(event) => handleChange('password', event.target.value) }
               fullWidth={true}
               margin="normal"

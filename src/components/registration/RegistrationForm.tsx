@@ -3,27 +3,31 @@ import PhoneVerification from '@dreemhome/components/registration/PhoneVerificat
 import { User } from '@dreemhome/entities/User'
 import { RouteComponentProps } from '@reach/router'
 import { PhoneNumber } from '@dreemhome/entities/PhoneNumber'
+import PaymentInfoForm from '@dreemhome/components/registration/PaymentInfoForm'
 import UserInfoForm from '@dreemhome/components/registration/UserInfoForm'
 import PartnerInfoForm from '@dreemhome/components/registration/PartnerInfoForm'
+import { PartnerInvite } from '@dreemhome/entities/PartnerInvite';
+import { Charge } from '@dreemhome/entities/Charge';
 
-interface Props extends RouteComponentProps{
-}
+type FormState = "unverified" | "verified" | "created" | "partner_invited" | "payment_created"
 
-type FormState = "unverified" | "verified" | "created" | "payment_created"
-
-const RegistrationForm: FunctionComponent<Props> = () => {
+const RegistrationForm: FunctionComponent<RouteComponentProps> = () => {
   const [formState, setFormState] = useState<FormState>('unverified')
-  const [user, setUser] = useState<User>({ attributes: { } })
+  const [user, setUser] = useState<User>({
+    id: '',
+    attributes: { }
+  })
+  const [partnerInvte, setPartnerInvite] = useState<PartnerInvite>({
+    id: '',
+    attributes: { }
+  })
+  const [charge, setCharge] = useState<Charge>({
+    id: '',
+    attributes: {}
+  })
 
   const handlePhoneNumberVerified = (phoneNumber: PhoneNumber) => {
-    const newState = Object.assign(user, {
-      user: {
-        phone_number: phoneNumber
-      }
-    })
-
     setFormState('verified')
-    setUser(newState)
   }
 
   const handleUserCreated = (user: User) => {
@@ -31,7 +35,14 @@ const RegistrationForm: FunctionComponent<Props> = () => {
     setFormState('created')
   }
 
-  const handlePartnerCreated = (user: User) => {
+  const handlePartnerCreated = (partnerInvite: PartnerInvite) => {
+    setPartnerInvite(partnerInvite)
+    setFormState('partner_invited')
+  }
+
+  const handleChargeCreated = (charge: Charge) => {
+    setCharge(charge)
+    setFormState('payment_created')
   }
 
   return (
@@ -43,8 +54,10 @@ const RegistrationForm: FunctionComponent<Props> = () => {
           case 'verified':
             return <UserInfoForm userCreatedCallback={handleUserCreated}/>
           case 'created':
-            if (user.id) {
-              return <PartnerInfoForm partnerCreatedCallback={handlePartnerCreated} userId={user.id} />
+            return <PartnerInfoForm partnerCreatedCallback={handlePartnerCreated} userId={user.id} />
+          case 'partner_invited':
+            if (partnerInvte.attributes.wedding_registry_id) {
+              return <PaymentInfoForm callback={handleChargeCreated} weddingRegistryId={partnerInvte.attributes.wedding_registry_id} />
             }
           default:
             return null;
